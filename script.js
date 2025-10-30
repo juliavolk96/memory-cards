@@ -3,13 +3,15 @@ const scoreElement = document.querySelector('.score');
 const timerElement = document.querySelector('.timer');
 
 let cards = [];
-let firstCard;
-let secondCard;
+let firstCard = null;
+let secondCard = null;
 let lockBoard = false;
 let score = 0;
-let timer;
+let timer = null;
 let timeLeft = 90;
+let timerStarted = false;
 
+// Initialization
 scoreElement.textContent = score;
 timerElement.textContent = formatTime(timeLeft);
 
@@ -19,31 +21,29 @@ fetch('./data/cards.json')
     cards = [...data, ...data];
     shuffleCards();
     generateCards();
-    startTimer();
-  });
+  })
+  .catch(err => console.error('Error loading cards:', err));
 
+// Shuffling the array of cards
 function shuffleCards() {
   let currentIndex = cards.length;
-  let temporaryValue;
-  let randomIndex;
-
   while (currentIndex !== 0) {
-    randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex -= 1;
-    temporaryValue = cards[currentIndex];
-    cards[currentIndex] = cards[randomIndex];
-    cards[randomIndex] = temporaryValue;
+    const randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+    [cards[currentIndex], cards[randomIndex]] = [cards[randomIndex], cards[currentIndex]];
   }
 }
 
+// Generating cards on the field
 function generateCards() {
+  gameBoard.innerHTML = '';
   for (let card of cards) {
     const cardElement = document.createElement('div');
     cardElement.classList.add('card');
     cardElement.setAttribute('data-name', card.name);
     cardElement.innerHTML = `
       <div class='front'>
-        <img class='front-image' src="${card.image}">
+        <img class='front-image' src="${card.image}" alt="${card.name}">
       </div>
       <div class='back'></div>
     `;
@@ -52,9 +52,16 @@ function generateCards() {
   }
 }
 
+// Card click handler
 function flipCard() {
   if (lockBoard) return;
   if (this === firstCard) return;
+
+  // Start timer only on first turn
+  if (!timerStarted) {
+    startTimer();
+    timerStarted = true;
+  }
 
   this.classList.add('flipped');
 
@@ -71,17 +78,19 @@ function flipCard() {
   checkForMatch();
 }
 
+// Checking for a match
 function checkForMatch() {
-  let isMatch = firstCard.dataset.name === secondCard.dataset.name;
+  const isMatch = firstCard.dataset.name === secondCard.dataset.name;
   isMatch ? disableCards() : unflipCards();
 }
 
+// If the cards match
 function disableCards() {
   firstCard.removeEventListener('click', flipCard);
   secondCard.removeEventListener('click', flipCard);
-
   resetBoard();
 
+  // Checking for victory
   const flippedCards = document.querySelectorAll('.flipped');
   if (flippedCards.length === cards.length) {
     clearInterval(timer);
@@ -91,6 +100,7 @@ function disableCards() {
   }
 }
 
+// If the cards don't match
 function unflipCards() {
   setTimeout(() => {
     firstCard.classList.remove('flipped');
@@ -99,22 +109,29 @@ function unflipCards() {
   }, 1000);
 }
 
+// Resetting the board logic
 function resetBoard() {
   firstCard = null;
   secondCard = null;
   lockBoard = false;
 }
 
+// Restarting the game
 function restart() {
-  resetBoard();
-  shuffleCards();
+  clearInterval(timer);
+  timer = null;
+  timerStarted = false;
+  timeLeft = 90;
   score = 0;
   scoreElement.textContent = score;
-  gameBoard.innerHTML = '';
+  timerElement.textContent = formatTime(timeLeft);
+
+  resetBoard();
+  shuffleCards();
   generateCards();
-  resetTimer();
-  startTimer();
 }
+
+// Timer
 function startTimer() {
   timerElement.textContent = formatTime(timeLeft);
   timer = setInterval(() => {
@@ -131,12 +148,7 @@ function startTimer() {
   }, 1000);
 }
 
-function resetTimer() {
-  clearInterval(timer);
-  timeLeft = 90;
-  timerElement.textContent = formatTime(timeLeft);
-}
-
+// Formatting time
 function formatTime(seconds) {
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
