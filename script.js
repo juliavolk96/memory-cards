@@ -1,6 +1,11 @@
 const gameBoard = document.querySelector('.game-board');
 const scoreElement = document.querySelector('.score');
 const timerElement = document.querySelector('.timer');
+const restartButton = document.querySelector('.restart-button');
+
+const INITIAL_TIME = 90;
+const FLIP_BACK_DELAY = 1000;
+const ALERT_DELAY = 300;
 
 let cards = [];
 let firstCard = null;
@@ -8,23 +13,24 @@ let secondCard = null;
 let lockBoard = false;
 let score = 0;
 let timer = null;
-let timeLeft = 90;
+let timeLeft = INITIAL_TIME;
 let timerStarted = false;
 
 // Initialization
 scoreElement.textContent = score;
 timerElement.textContent = formatTime(timeLeft);
 
+// Fetch cards
 fetch('data/cards.json')
   .then(response => response.json())
-  .then((data) => {
+  .then(data => {
     cards = [...data, ...data];
     shuffleCards();
     generateCards();
   })
   .catch(err => console.error('Error loading cards:', err));
 
-// Shuffling the array of cards
+// Shuffle cards array
 function shuffleCards() {
   let currentIndex = cards.length;
   while (currentIndex !== 0) {
@@ -34,43 +40,50 @@ function shuffleCards() {
   }
 }
 
-// Generating cards on the field
+// Generate cards on board
 function generateCards() {
   gameBoard.innerHTML = '';
-  for (let card of cards) {
+  for (const card of cards) {
     const cardElement = document.createElement('div');
     cardElement.classList.add('card');
     cardElement.setAttribute('data-name', card.name);
+    cardElement.setAttribute('aria-pressed', 'false');
     cardElement.innerHTML = `
-      <div class='front'>
-        <img class='front-image' src="${card.image}" alt="${card.name}">
+      <div class="front">
+        <img class="front-image" src="${card.image}" alt="${card.name}">
       </div>
-      <div class='back'></div>
+      <div class="back"></div>
     `;
     gameBoard.appendChild(cardElement);
-    cardElement.addEventListener('click', flipCard);
   }
 }
 
-// Card click handler
-function flipCard() {
-  if (lockBoard) return;
-  if (this === firstCard) return;
+// Delegated click handler for cards
+gameBoard.addEventListener('click', (e) => {
+  const clickedCard = e.target.closest('.card');
+  if (!clickedCard) return;
+  flipCard(clickedCard);
+});
 
-  // Start timer only on first turn
+// Flip card logic
+function flipCard(card) {
+  if (lockBoard || card === firstCard || card.classList.contains('flipped')) return;
+
+  // Start timer only on first user click
   if (!timerStarted) {
     startTimer();
     timerStarted = true;
   }
 
-  this.classList.add('flipped');
+  card.classList.add('flipped');
+  card.setAttribute('aria-pressed', 'true');
 
   if (!firstCard) {
-    firstCard = this;
+    firstCard = card;
     return;
   }
 
-  secondCard = this;
+  secondCard = card;
   score++;
   scoreElement.textContent = score;
   lockBoard = true;
@@ -78,51 +91,50 @@ function flipCard() {
   checkForMatch();
 }
 
-// Checking for a match
+// Check for match
 function checkForMatch() {
   const isMatch = firstCard.dataset.name === secondCard.dataset.name;
-  isMatch ? disableCards() : unflipCards();
-}
-
-// If the cards match
-function disableCards() {
-  firstCard.removeEventListener('click', flipCard);
-  secondCard.removeEventListener('click', flipCard);
-  resetBoard();
-
-  // Checking for victory
-  const flippedCards = document.querySelectorAll('.flipped');
-  if (flippedCards.length === cards.length) {
-    clearInterval(timer);
-    setTimeout(() => {
-      alert('🎉 You won!');
-    }, 300);
+  if (isMatch) {
+    disableCards();
+  } else {
+    unflipCards();
   }
 }
 
-// If the cards don't match
+// Disable matched cards
+function disableCards() {
+  firstCard.removeAttribute('aria-pressed');
+  secondCard.removeAttribute('aria-pressed');
+  resetBoard();
+  checkVictory();
+}
+
+// Unflip unmatched cards
 function unflipCards() {
   setTimeout(() => {
     firstCard.classList.remove('flipped');
+    firstCard.setAttribute('aria-pressed', 'false');
     secondCard.classList.remove('flipped');
+    secondCard.setAttribute('aria-pressed', 'false');
     resetBoard();
-  }, 1000);
+  }, FLIP_BACK_DELAY);
 }
 
-// Resetting the board logic
+// Reset board state
 function resetBoard() {
-  firstCard = null;
-  secondCard = null;
+  [firstCard, secondCard] = [null, null];
   lockBoard = false;
 }
 
-// Restarting the game
+// Restart game
+restartButton.addEventListener('click', restart);
 function restart() {
   clearInterval(timer);
   timer = null;
   timerStarted = false;
-  timeLeft = 90;
+  timeLeft = INITIAL_TIME;
   score = 0;
+
   scoreElement.textContent = score;
   timerElement.textContent = formatTime(timeLeft);
 
@@ -131,7 +143,7 @@ function restart() {
   generateCards();
 }
 
-// Timer
+// Start countdown timer
 function startTimer() {
   timerElement.textContent = formatTime(timeLeft);
   timer = setInterval(() => {
@@ -141,14 +153,26 @@ function startTimer() {
     if (timeLeft <= 0) {
       clearInterval(timer);
       lockBoard = true;
-      setTimeout(() => {
-        alert('⏰ Time’s up! You lost.');
-      }, 300);
+      showEndGameAlert('⏰ Time’s up! You lost.');
     }
   }, 1000);
 }
 
-// Formatting time
+// Check victory condition
+function checkVictory() {
+  const flippedCards = document.querySelectorAll('.card.flipped');
+  if (flippedCards.length === cards.length) {
+    clearInterval(timer);
+    showEndGameAlert('🎉 You won!');
+  }
+}
+
+// Show end-game alert
+function showEndGameAlert(message) {
+  setTimeout(() => alert(message), ALERT_DELAY);
+}
+
+// Format time
 function formatTime(seconds) {
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
