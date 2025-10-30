@@ -10,15 +10,15 @@
 <body>
   <main class="game-container">
     <h1 class="game-title">Memory Cards</h1>
-    <header class="header">
+    <section class="header" aria-label="Game stats">
       <div role="status" aria-live="polite">Score: <span class="score">0</span></div>
-      <div>Time: <span class="timer">1:30</span></div>
-    </header>
-    <div class="game-board"></div>
+      <div role="timer" aria-label="Remaining time">Time: <span class="timer">1:30</span></div>
+    </section>
+    <div class="game-board" aria-label="Memory cards board"></div>
     <div class="actions">
-      <button class="restart-button" type="button">Restart</button>
+      <button class="restart-button" type="button" aria-label="Restart game">Restart</button>
     </div>
   </main>
-  <script src="script.js"></script>
+  <script type="module" src="script.js"></script>
 </body>
 </html>
