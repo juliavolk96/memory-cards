@@ -15,7 +15,7 @@ let timerStarted = false;
 scoreElement.textContent = score;
 timerElement.textContent = formatTime(timeLeft);
 
-fetch('./data/cards.json')
+fetch('data/cards.json')
   .then(response => response.json())
   .then((data) => {
     cards = [...data, ...data];

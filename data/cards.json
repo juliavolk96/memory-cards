@@ -1,38 +1,38 @@
 [
   {
-    "image": "../assets/ant_kawaii_flat.png",
+    "image": "assets/ant_kawaii_flat.png",
     "name": "ant"
   },
   {
-    "image": "../assets/bee_kawaii_flat.png",
+    "image": "assets/bee_kawaii_flat.png",
     "name": "bee"
   },
   {
-    "image": "../assets/butterfly_kawaii_flat.png",
+    "image": "assets/butterfly_kawaii_flat.png",
     "name": "butterfly"
   },
   {
-    "image": "../assets/drop_kawaii_flat.png",
+    "image": "assets/drop_kawaii_flat.png",
     "name": "drop"
   },
   {
-    "image": "../assets/flower_kawaii_flat.png",
+    "image": "assets/flower_kawaii_flat.png",
     "name": "flower"
   },
   {
-    "image": "../assets/gardener_kawaii_flat.png",
+    "image": "assets/gardener_kawaii_flat.png",
     "name": "gardener"
   },
   {
-    "image": "../assets/gardener1_kawaii_flat.png",
+    "image": "assets/gardener1_kawaii_flat.png",
     "name": "gardener_girl"
   },
   {
-    "image": "../assets/mushroom_kawaii_flat.png",
+    "image": "assets/mushroom_kawaii_flat.png",
     "name": "mushroom"
   },
   {
-    "image": "../assets/snail_kawaii_flat.png",
+    "image": "assets/snail_kawaii_flat.png",
     "name": "snail"
   }
 ]
